@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Каталог мемов</title>
+<style>
+:root {
+  --bg: #111214; --panel: #1a1b1f; --card: #202227; --card-hover: #2a2c33;
+  --line: #2e3038; --text: #e8e8ea; --muted: #8d8f99; --accent: #ffb020;
+  --accent-ink: #1a1200; --danger: #ff5c5c; --ok: #4cd18a; --chip: #2a2c33;
+  --radius: 10px; --card-w: 230px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font: 14px/1.4 "Segoe UI", system-ui, sans-serif; display: flex; flex-direction: column; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+header { display: flex; gap: 12px; align-items: center; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.logo { font-weight: 700; font-size: 17px; white-space: nowrap; }
+.logo b { color: var(--accent); }
+.search { flex: 1 1 320px; position: relative; }
+.search input { width: 100%; padding: 9px 12px 9px 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); outline: none; font-size: 15px; }
+.search input:focus { border-color: var(--accent); }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); opacity: .5; }
+.search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+kbd { font: 11px/1 Consolas, monospace; padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); }
+.hbtn { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); white-space: nowrap; }
+.hbtn:hover { background: var(--card-hover); }
+.hbtn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+select.hbtn { padding-right: 8px; }
+.size { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.size input { width: 90px; accent-color: var(--accent); }
+
+main { flex: 1; display: flex; min-height: 0; }
+aside { width: 250px; flex-shrink: 0; overflow-y: auto; padding: 12px; border-right: 1px solid var(--line); background: var(--panel); }
+aside h3 { margin: 14px 4px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; }
+aside h3 a { color: var(--muted); cursor: pointer; text-transform: none; letter-spacing: 0; }
+aside h3 a:hover { color: var(--accent); }
+.flist button { display: flex; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: 6px; background: none; text-align: left; }
+.flist button:hover { background: var(--card); }
+.flist button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.flist .n { color: var(--muted); font-size: 12px; }
+.flist button.on .n { color: var(--accent-ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); font-size: 12px; }
+.chip:hover { border-color: var(--muted); }
+.chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.chip.not { background: var(--danger); color: #fff; border-color: var(--danger); text-decoration: line-through; }
+.chip.auto { font-style: italic; }
+.hint { color: var(--muted); font-size: 12px; margin: 6px 4px; }
+
+#content { flex: 1; overflow-y: auto; padding: 14px 16px 40px; }
+.status { color: var(--muted); margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.status .active { display: flex; gap: 5px; flex-wrap: wrap; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr)); gap: 12px; }
+.card { background: var(--card); border-radius: var(--radius); overflow: hidden; cursor: pointer; border: 1px solid transparent; transition: transform .08s, border-color .08s; }
+.card:hover { border-color: var(--accent); background: var(--card-hover); }
+.card:focus-visible { outline: 2px solid var(--accent); }
+.thumb { position: relative; aspect-ratio: 16/9; background: #000; overflow: hidden; }
+.thumb img, .thumb video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.thumb .bg { object-fit: cover; filter: blur(14px) brightness(.45); transform: scale(1.2); }
+.thumb .audio-ph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 40px; background: linear-gradient(135deg, #2b2340, #1d2a3a); }
+.badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.78); padding: 1px 6px; border-radius: 4px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.badge.l { left: 6px; right: auto; }
+.badge.new { background: var(--ok); color: #002; font-weight: 600; top: 6px; bottom: auto; left: 6px; right: auto; }
+.prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); width: 0; }
+.meta { padding: 8px 10px 10px; }
+.title { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.8em; }
+.sub { color: var(--muted); font-size: 12px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.empty { text-align: center; color: var(--muted); padding: 60px 20px; font-size: 16px; }
+
+/* модальное окно */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: none; align-items: center; justify-content: center; z-index: 10; padding: 20px; }
+.modal.open { display: flex; }
+.mbox { background: var(--panel); border-radius: 14px; width: min(1100px, 100%); max-height: 100%; overflow: auto; display: grid; grid-template-columns: 1fr 330px; }
+.mplayer { background: #000; display: flex; align-items: center; justify-content: center; min-height: 300px; position: relative; }
+.mplayer video, .mplayer audio { width: 100%; max-height: 80vh; display: block; }
+.mside { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.mside h2 { margin: 0; font-size: 18px; line-height: 1.3; }
+.mside .sub { white-space: normal; }
+.row { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { padding: 7px 11px; border-radius: 7px; border: 1px solid var(--line); background: var(--card); font-size: 13px; }
+.btn:hover { background: var(--card-hover); border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.danger { color: var(--danger); }
+.btn.danger:hover:not(:disabled) { background: var(--danger); color: #fff; border-color: var(--danger); }
+.lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 5px; }
+.field { width: 100%; padding: 7px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); outline: none; }
+.field:focus { border-color: var(--accent); }
+.tagedit .chip { cursor: pointer; }
+.tagedit .chip:hover { border-color: var(--danger); }
+.mclose { position: absolute; top: 8px; right: 8px; z-index: 2; background: rgba(0,0,0,.6); border: 0; color: #fff; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; }
+.mnav { color: var(--muted); font-size: 12px; }
+.mtext { font-size: 13px; color: var(--text); background: var(--bg); border-radius: 7px; padding: 8px 10px; max-height: 120px; overflow-y: auto; font-style: italic; }
+.offline { font-size: 12px; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; padding: 8px; }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 8px; font-weight: 600; transition: transform .2s; z-index: 20; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 800px) {
+  aside { display: none; }
+  aside.mob { display: block; position: fixed; inset: 0; z-index: 5; width: auto; }
+  .mbox { grid-template-columns: 1fr; }
+  .size { display: none; }
+}
+@media (min-width: 801px) { #filtersBtn { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Каталог <b>мемов</b></div>
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+    <input id="q" type="search" placeholder="Поиск по фразе, источнику, тегу, словам из ролика..." autocomplete="off">
+    <kbd>/</kbd>
+  </div>
+  <select id="sort" class="hbtn" title="Сортировка">
+    <option value="cat">По папкам</option>
+    <option value="name">По имени</option>
+    <option value="new">Сначала новые</option>
+    <option value="short">Сначала короткие</option>
+    <option value="long">Сначала длинные</option>
+  </select>
+  <label class="size" title="Размер карточек">▦ <input id="size" type="range" min="150" max="420" step="10"></label>
+  <button id="soundBtn" class="hbtn" title="Звук при наведении (S)">🔇 Звук</button>
+  <button id="randomBtn" class="hbtn" title="Случайный мем из текущей выборки (R)">🎲 Случайный</button>
+  <button id="rescanBtn" class="hbtn" title="Пересканировать папки">⟳ Обновить</button>
+  <button id="filtersBtn" class="hbtn">Фильтры</button>
+</header>
+<main>
+  <aside id="aside">
+    <h3>Папки</h3>
+    <div class="flist" id="folders"></div>
+    <h3>Длительность</h3>
+    <div class="chips" id="durs"></div>
+    <h3>Теги <a id="clearTags">сбросить</a></h3>
+    <div class="chips" id="tags"></div>
+    <p class="hint">Клик - показать только с тегом. Второй клик - исключить тег (например, убрать мат). Третий - снять.</p>
+    <h3>Служебные</h3>
+    <div class="chips" id="autotags"></div>
+  </aside>
+  <section id="content">
+    <div class="status"><span id="count"></span><span class="active" id="active"></span></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</div>
+  </section>
+</main>
+
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div class="mplayer" id="mplayer"><button class="mclose" id="mclose" title="Закрыть (Esc)">✕</button></div>
+    <div class="mside">
+      <div>
+        <h2 id="mtitle"></h2>
+        <div class="sub" id="msub"></div>
+      </div>
+      <div id="mtextBox">
+        <div class="lbl">Что говорят (автораспознавание)</div>
+        <div id="mtext" class="mtext"></div>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="bCopyPath" title="Путь к файлу в буфер (C)">📋 Копировать путь</button>
+        <button class="btn" id="bReveal" title="Открыть папку с выделенным файлом (E)">📂 В проводнике</button>
+        <button class="btn" id="bOpen" title="Открыть в системном плеере">▶ В плеере</button>
+        <button class="btn" id="bCopyName">Копировать имя</button>
+      </div>
+      <div>
+        <div class="lbl">Теги</div>
+        <div class="chips tagedit" id="mtags"></div>
+        <input class="field" id="tagInput" list="tagList" placeholder="Добавить тег и Enter" style="margin-top:6px">
+        <datalist id="tagList"></datalist>
+        <div class="chips" id="mauto" style="margin-top:6px"></div>
+      </div>
+      <div>
+        <div class="lbl">Папка и имя файла</div>
+        <select class="field" id="mfolder"></select>
+        <input class="field" id="mname" style="margin-top:6px">
+        <div class="row" style="margin-top:6px; justify-content:space-between">
+          <button class="btn" id="bMove">Сохранить папку и имя</button>
+          <button class="btn danger" id="bDelete" title="Удалить в Корзину (Delete)">🗑 Удалить</button>
+        </div>
+      </div>
+      <div class="offline" id="offline" hidden>Редактирование тегов, перенос и «В проводнике» работают, если каталог открыт через <b>Каталог мемов.bat</b>. Сейчас он открыт просто как файл, поэтому доступны только просмотр и копирование пути.</div>
+      <div class="mnav">← → соседний мем · Esc закрыть · C копировать путь · E проводник · Del удалить</div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="_catalog/memes.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("memes:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("memes:" + k, JSON.stringify(v)); } catch {} }
+};
+
+let DATA = window.MEMES || { items: [], folders: [], root: "" };
+let SERVER = false;
+const state = {
+  q: "", folder: store.get("folder", ""), tags: {}, dur: "", sort: store.get("sort", "cat"),
+  sound: store.get("sound", false), size: store.get("size", 230)
+};
+const DURS = [
+  ["", "любая"], ["s", "до 3 с"], ["m", "3-10 с"], ["l", "10-20 с"], ["xl", "больше 20 с"]
+];
+let filtered = [];
+let current = -1;
+
+// ---------- утилиты ----------
+const fileUrl = p => p.split("/").map(encodeURIComponent).join("/");
+const fmtDur = d => { if (d == null) return ""; d = Math.round(d); return Math.floor(d / 60) + ":" + String(d % 60).padStart(2, "0"); };
+const catLabel = c => c.replace(/^\d+\s+/, "");
+const norm = s => s.toLowerCase().replace(/ё/g, "е").replace(/[^\p{L}\p{N}\s]+/gu, " ").replace(/\s+/g, " ").trim();
+const EN = "qwertyuiop[]asdfghjkl;'zxcvbnm,.`", RU = "йцукенгшщзхъфывапролджэячсмитьбюё";
+const fixLayout = s => s.toLowerCase().split("").map(ch => { const i = EN.indexOf(ch); return i >= 0 ? RU[i] : ch; }).join("");
+const isNew = it => (Date.now() - new Date(it.added).getTime()) < 7 * 864e5;
+const fullPath = it => (DATA.root ? DATA.root.replace(/[\\/]+$/, "") + "\\" : "") + it.p.replace(/\//g, "\\");
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1600); }
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch { const ta = document.createElement("textarea"); ta.value = text; document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+  toast("Скопировано");
+}
+async function api(path, body) {
+  const r = await fetch("/api/" + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+  const j = await r.json();
+  if (!r.ok || j.error) throw new Error(j.error || r.status);
+  return j;
+}
+
+function prep() {
+  for (const it of DATA.items) {
+    it._all = [...it.tags, ...it.auto];
+    it._hay = norm([it.name, catLabel(it.cat), it._all.join(" "), it.text || ""].join(" "));
+  }
+}
+
+// ---------- фильтрация ----------
+function durOk(it) {
+  const d = it.dur;
+  if (!state.dur) return true;
+  if (d == null) return false;
+  return state.dur === "s" ? d <= 3 : state.dur === "m" ? d > 3 && d <= 10 : state.dur === "l" ? d > 10 && d <= 20 : d > 20;
+}
+function matchQuery(it, words) { return words.every(w => it._hay.includes(w)); }
+function base(skip) {
+  return DATA.items.filter(it =>
+    (skip === "folder" || !state.folder || it.cat === state.folder) &&
+    (skip === "dur" || durOk(it)) &&
+    (skip === "tags" || Object.entries(state.tags).every(([t, m]) => m === 1 ? it._all.includes(t) : !it._all.includes(t))));
+}
+function applyQuery(list) {
+  const q = norm(state.q);
+  if (!q) return list;
+  let words = q.split(" ");
+  let res = list.filter(it => matchQuery(it, words));
+  if (!res.length && /[a-z]/.test(q)) { words = norm(fixLayout(state.q)).split(" "); res = list.filter(it => matchQuery(it, words)); }
+  return res;
+}
+function sortList(list) {
+  const by = {
+    cat: (a, b) => a.cat.localeCompare(b.cat) || a.name.localeCompare(b.name, "ru"),
+    name: (a, b) => a.name.localeCompare(b.name, "ru"),
+    new: (a, b) => b.added.localeCompare(a.added) || a.name.localeCompare(b.name, "ru"),
+    short: (a, b) => (a.dur ?? 1e9) - (b.dur ?? 1e9),
+    long: (a, b) => (b.dur ?? -1) - (a.dur ?? -1)
+  }[state.sort];
+  return list.sort(by);
+}
+
+// ---------- отрисовка боковой панели ----------
+function renderSide() {
+  const byFolder = {}; applyQuery(base("folder")).forEach(it => byFolder[it.cat] = (byFolder[it.cat] || 0) + 1);
+  const total = Object.values(byFolder).reduce((a, b) => a + b, 0);
+  const folders = [...new Set([...DATA.folders, ...DATA.items.map(i => i.cat)])].sort();
+  $("#folders").innerHTML = `<button data-f="" class="${!state.folder ? "on" : ""}"><span>Все мемы</span><span class="n">${total}</span></button>` +
+    folders.map(f => `<button data-f="${esc(f)}" class="${state.folder === f ? "on" : ""}"><span>${esc(f)}</span><span class="n">${byFolder[f] || 0}</span></button>`).join("");
+
+  $("#durs").innerHTML = DURS.map(([k, l]) => `<button class="chip ${state.dur === k ? "on" : ""}" data-d="${k}">${l}</button>`).join("");
+
+  const pool = applyQuery(base("tags"));
+  const counts = (key) => { const c = {}; pool.forEach(it => it[key].forEach(t => c[t] = (c[t] || 0) + 1)); return c; };
+  const chip = (t, n, auto) => {
+    const m = state.tags[t];
+    return `<button class="chip ${auto ? "auto" : ""} ${m === 1 ? "on" : m === -1 ? "not" : ""}" data-t="${esc(t)}">${esc(t)} <span class="n">${n || 0}</span></button>`;
+  };
+  const manual = counts("tags"), auto = counts("auto");
+  const allManual = new Set(DATA.items.flatMap(i => i.tags)); Object.keys(state.tags).forEach(t => { if (!(t in auto)) allManual.add(t); });
+  const allAuto = new Set(DATA.items.flatMap(i => i.auto));
+  $("#tags").innerHTML = [...allManual].filter(t => !allAuto.has(t)).sort((a, b) => (manual[b] || 0) - (manual[a] || 0) || a.localeCompare(b, "ru")).map(t => chip(t, manual[t])).join("") || '<span class="hint">Тегов пока нет</span>';
+  $("#autotags").innerHTML = [...allAuto].sort((a, b) => a.localeCompare(b, "ru")).map(t => chip(t, auto[t], true)).join("");
+  $("#tagList").innerHTML = [...allManual].sort().map(t => `<option value="${esc(t)}">`).join("");
+}
+
+// ---------- сетка ----------
+let io;
+function renderGrid() {
+  filtered = sortList(applyQuery(base()));
+  $("#count").textContent = `Показано ${filtered.length} из ${DATA.items.length}` + (DATA.generated ? ` · обновлено ${DATA.generated}` : "");
+  const act = [];
+  if (state.folder) act.push(`<button class="chip on" data-clear="folder">${esc(catLabel(state.folder))} ✕</button>`);
+  if (state.dur) act.push(`<button class="chip on" data-clear="dur">${DURS.find(d => d[0] === state.dur)[1]} ✕</button>`);
+  for (const [t, m] of Object.entries(state.tags)) act.push(`<button class="chip ${m === 1 ? "on" : "not"}" data-clear-tag="${esc(t)}">${esc(t)} ✕</button>`);
+  $("#active").innerHTML = act.join("");
+  $("#empty").hidden = filtered.length > 0;
+
+  const grid = $("#grid");
+  grid.innerHTML = filtered.map((it, i) => `
+    <div class="card" tabindex="0" data-i="${i}">
+      <div class="thumb">
+        ${it.kind === "audio" ? '<div class="audio-ph">🔊</div>' :
+          it.thumb ? `<img class="bg" data-src="_catalog/thumbs/${it.thumb}" alt=""><img class="fg" data-src="_catalog/thumbs/${it.thumb}" alt="">` :
+          `<video class="fg" data-poster="${fileUrl(it.p)}#t=0.5" preload="none" muted></video>`}
+        ${isNew(it) ? '<span class="badge new">НОВОЕ</span>' : ""}
+        ${it.auto.includes("гринскрин") ? '<span class="badge l">GS</span>' : ""}
+        <span class="badge">${fmtDur(it.dur)}</span>
+        <div class="prog"></div>
+      </div>
+      <div class="meta">
+        <div class="title" title="${esc(it.name)}">${esc(it.name)}</div>
+        <div class="sub">${esc(catLabel(it.cat))}${it.tags.length ? " · " + esc(it.tags.join(", ")) : ""}</div>
+      </div>
+    </div>`).join("");
+
+  io && io.disconnect();
+  io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.querySelectorAll("[data-src]").forEach(img => { img.src = img.dataset.src; img.removeAttribute("data-src"); });
+    const v = e.target.querySelector("video[data-poster]");
+    if (v) { v.preload = "metadata"; v.src = v.dataset.poster; v.removeAttribute("data-poster"); }
+    io.unobserve(e.target);
+  }), { root: $("#content"), rootMargin: "600px" });
+  grid.querySelectorAll(".card").forEach(c => io.observe(c));
+}
+function render() { renderSide(); renderGrid(); }
+
+// ---------- предпросмотр при наведении ----------
+let hoverEl = null, hoverMedia = null, hoverTimer = null;
+function stopHover() {
+  clearTimeout(hoverTimer);
+  if (hoverMedia) { hoverMedia.pause(); hoverMedia.removeAttribute("src"); hoverMedia.load(); hoverMedia.remove(); }
+  if (hoverEl) hoverEl.querySelector(".prog").style.width = 0;
+  hoverEl = hoverMedia = null;
+}
+function startHover(card) {
+  if (hoverEl === card) return;
+  stopHover();
+  hoverEl = card;
+  hoverTimer = setTimeout(() => {
+    const it = filtered[+card.dataset.i]; if (!it) return;
+    const m = document.createElement(it.kind === "audio" ? "audio" : "video");
+    m.src = fileUrl(it.p);
+    m.muted = !state.sound; m.loop = true; m.playsInline = true; m.style.objectFit = "contain";
+    const prog = card.querySelector(".prog");
+    m.ontimeupdate = () => { if (m.duration) prog.style.width = (m.currentTime / m.duration * 100) + "%"; };
+    card.querySelector(".thumb").insertBefore(m, card.querySelector(".badge"));
+    hoverMedia = m;
+    m.play().catch(() => { m.muted = true; m.play().catch(() => {}); });
+  }, 120);
+}
+
+// ---------- модальное окно ----------
+function openModal(i) {
+  stopHover();
+  current = i;
+  const it = filtered[i]; if (!it) return;
+  const pl = $("#mplayer");
+  pl.querySelectorAll("video,audio").forEach(m => { m.pause(); m.remove(); });
+  const m = document.createElement(it.kind === "audio" ? "audio" : "video");
+  m.src = fileUrl(it.p); m.controls = true; m.autoplay = true;
+  pl.append(m);
+  $("#mtitle").textContent = it.name;
+  const res = it.w ? ` · ${it.w}×${it.h}` : "";
+  const mb = it.size ? ` · ${(it.size / 1048576).toFixed(1)} МБ` : "";
+  $("#msub").innerHTML = `${esc(it.cat)} · ${fmtDur(it.dur)}${res}${mb}<br>${esc(it.p)}` + (it.audio ? `<br>Аудиодорожка: ${esc(it.audio.split("/").pop())}` : "");
+  renderModalTags(it);
+  $("#mtextBox").hidden = !it.text;
+  $("#mtext").textContent = it.text ? "«" + it.text + "»" : "";
+  $("#mfolder").innerHTML = [...new Set([...DATA.folders, it.cat])].sort().map(f => `<option ${f === it.cat ? "selected" : ""}>${esc(f)}</option>`).join("");
+  $("#mname").value = it.name;
+  ["#tagInput", "#mfolder", "#mname", "#bMove", "#bReveal", "#bOpen", "#bDelete"].forEach(s => $(s).disabled = !SERVER);
+  $("#offline").hidden = SERVER;
+  $("#modal").classList.add("open");
+}
+function renderModalTags(it) {
+  $("#mtags").innerHTML = it.tags.map(t => `<span class="chip" data-rm="${esc(t)}" title="Убрать тег">${esc(t)} ✕</span>`).join("") || '<span class="hint" style="margin:0">Своих тегов нет</span>';
+  $("#mauto").innerHTML = it.auto.map(t => `<span class="chip auto">${esc(t)}</span>`).join("");
+}
+function closeModal() {
+  $("#modal").classList.remove("open");
+  $("#mplayer").querySelectorAll("video,audio").forEach(m => { m.pause(); m.removeAttribute("src"); m.load(); m.remove(); });
+  current = -1;
+}
+function reload(data, keepPath) {
+  DATA = data; prep();
+  render();
+  if (keepPath) { const i = filtered.findIndex(x => x.p === keepPath); if (i >= 0 && current >= 0) { current = i; const it = filtered[i]; renderModalTags(it); $("#mname").value = it.name; } }
+}
+async function saveTags(it, tags) {
+  try { const d = await api("tags", { p: it.p, tags }); reload(d, it.p); toast("Теги сохранены"); }
+  catch (e) { toast("Ошибка: " + e.message); }
+}
+
+// ---------- события ----------
+$("#q").addEventListener("input", e => { state.q = e.target.value; render(); $("#content").scrollTop = 0; });
+$("#sort").value = state.sort;
+$("#sort").onchange = e => { state.sort = e.target.value; store.set("sort", state.sort); renderGrid(); };
+$("#size").value = state.size; document.documentElement.style.setProperty("--card-w", state.size + "px");
+$("#size").oninput = e => { state.size = +e.target.value; store.set("size", state.size); document.documentElement.style.setProperty("--card-w", state.size + "px"); };
+function setSound(v) { state.sound = v; store.set("sound", v); $("#soundBtn").textContent = v ? "🔊 Звук" : "🔇 Звук"; $("#soundBtn").classList.toggle("on", v); if (hoverMedia) hoverMedia.muted = !v; }
+setSound(state.sound);
+$("#soundBtn").onclick = () => setSound(!state.sound);
+$("#randomBtn").onclick = () => { if (filtered.length) openModal(Math.floor(Math.random() * filtered.length)); };
+$("#filtersBtn").onclick = () => $("#aside").classList.toggle("mob");
+$("#clearTags").onclick = () => { state.tags = {}; render(); };
+$("#rescanBtn").onclick = async () => {
+  if (!SERVER) { toast("Запусти «Обновить каталог.bat» и перезагрузи страницу"); return; }
+  $("#rescanBtn").textContent = "⟳ Сканирую..."; $("#rescanBtn").disabled = true;
+  try { const d = await api("rescan"); const before = DATA.items.length; reload(d); toast(`Готово: ${d.items.length} мемов (${d.items.length - before >= 0 ? "+" : ""}${d.items.length - before})`); }
+  catch (e) { toast("Ошибка: " + e.message); }
+  $("#rescanBtn").textContent = "⟳ Обновить"; $("#rescanBtn").disabled = false;
+};
+
+$("#aside").addEventListener("click", e => {
+  const f = e.target.closest("[data-f]"), d = e.target.closest("[data-d]"), t = e.target.closest("[data-t]");
+  if (f) { state.folder = f.dataset.f; store.set("folder", state.folder); }
+  else if (d) state.dur = d.dataset.d;
+  else if (t) { const k = t.dataset.t, m = state.tags[k]; if (!m) state.tags[k] = 1; else if (m === 1) state.tags[k] = -1; else delete state.tags[k]; }
+  else return;
+  render(); $("#content").scrollTop = 0;
+});
+$("#active").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.clear === "folder") { state.folder = ""; store.set("folder", ""); }
+  if (b.dataset.clear === "dur") state.dur = "";
+  if (b.dataset.clearTag) delete state.tags[b.dataset.clearTag];
+  render();
+});
+const grid = $("#grid");
+grid.addEventListener("mouseover", e => { const c = e.target.closest(".card"); if (c) startHover(c); });
+grid.addEventListener("mouseleave", stopHover);
+grid.addEventListener("mouseout", e => { const c = e.target.closest(".card"); if (c && !c.contains(e.relatedTarget)) stopHover(); });
+grid.addEventListener("click", e => { const c = e.target.closest(".card"); if (c) openModal(+c.dataset.i); });
+grid.addEventListener("keydown", e => { const c = e.target.closest(".card"); if (c && e.key === "Enter") openModal(+c.dataset.i); });
+
+$("#mclose").onclick = closeModal;
+$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+$("#bCopyPath").onclick = () => copy(fullPath(filtered[current]));
+$("#bCopyName").onclick = () => copy(filtered[current].name);
+$("#bReveal").onclick = () => api("reveal", { p: filtered[current].p }).catch(e => toast("Ошибка: " + e.message));
+$("#bOpen").onclick = () => { $("#mplayer").querySelectorAll("video,audio").forEach(m => m.pause()); api("open", { p: filtered[current].p }).catch(e => toast("Ошибка: " + e.message)); };
+$("#mtags").addEventListener("click", e => { const c = e.target.closest("[data-rm]"); if (!c || !SERVER) return; const it = filtered[current]; saveTags(it, it.tags.filter(t => t !== c.dataset.rm)); });
+$("#tagInput").addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const it = filtered[current]; const v = e.target.value.trim().toLowerCase(); if (!v) return;
+  e.target.value = ""; saveTags(it, [...new Set([...it.tags, ...v.split(",").map(s => s.trim()).filter(Boolean)])]);
+});
+$("#bMove").onclick = async () => {
+  const it = filtered[current];
+  try {
+    const d = await api("move", { p: it.p, folder: $("#mfolder").value, name: $("#mname").value });
+    reload(d);
+    const i = filtered.findIndex(x => x.p === d.moved);
+    toast("Сохранено");
+    if (i >= 0) openModal(i); else closeModal();
+  } catch (e) { toast("Ошибка: " + e.message); }
+};
+
+$("#bDelete").onclick = async () => {
+  const it = filtered[current];
+  if (!SERVER || !it) return;
+  if (!confirm(`Удалить мем «${it.name}»?\n\nФайл уйдёт в Корзину Windows, оттуда его можно восстановить.`)) return;
+  const idx = current;
+  $("#mplayer").querySelectorAll("video,audio").forEach(m => { m.pause(); m.removeAttribute("src"); m.load(); });
+  try {
+    const d = await api("delete", { p: it.p });
+    reload(d);
+    toast("Удалено в Корзину");
+    if (filtered.length) openModal(Math.min(idx, filtered.length - 1)); else closeModal();
+  } catch (e) { toast("Ошибка: " + e.message); }
+};
+
+document.addEventListener("keydown", e => {
+  const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+  const open = $("#modal").classList.contains("open");
+  if (e.key === "Escape") { if (open) closeModal(); else if (typing) document.activeElement.blur(); return; }
+  if (typing) return;
+  if (open) {
+    if (e.key === "ArrowRight" && current < filtered.length - 1) openModal(current + 1);
+    else if (e.key === "ArrowLeft" && current > 0) openModal(current - 1);
+    else if (e.key.toLowerCase() === "c" || e.key.toLowerCase() === "с") copy(fullPath(filtered[current]));
+    else if ((e.key.toLowerCase() === "e" || e.key.toLowerCase() === "у") && SERVER) $("#bReveal").click();
+    else if (e.key === "Delete" && SERVER) $("#bDelete").click();
+    return;
+  }
+  if (e.key === "/" || e.key === ".") { e.preventDefault(); $("#q").focus(); $("#q").select(); }
+  else if (e.key.toLowerCase() === "s" || e.key.toLowerCase() === "ы") setSound(!state.sound);
+  else if (e.key.toLowerCase() === "r" || e.key.toLowerCase() === "к") $("#randomBtn").click();
+});
+
+// ---------- старт ----------
+prep();
+if (state.folder && !DATA.folders.includes(state.folder)) state.folder = "";
+render();
+if (location.protocol.startsWith("http")) {
+  fetch("/api/ping").then(r => r.ok && (SERVER = true)).catch(() => {});
+}
+if (!DATA.items.length) $("#empty").textContent = "Каталог пуст. Запусти «Обновить каталог.bat».";
+})();
+</script>
+</body>
+</html>
